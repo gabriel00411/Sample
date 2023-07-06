@@ -1,0 +1,140 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+public class ArrayListGUI extends JFrame {
+    private ArrayList<Item> itemList;
+    private JTextArea descriptionArea;
+    private JTextField itemField;
+    private JTextField descriptionField;
+    private JPanel itemPanel;
+    private Map<String, String> itemDescriptions;
+
+    public ArrayListGUI() {
+        itemList = new ArrayList<>();
+        itemDescriptions = new HashMap<>();
+
+        setTitle("ArrayList GUI");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(400, 400);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
+
+        JPanel inputPanel = new JPanel();
+        JLabel itemLabel = new JLabel("Item:");
+        itemField = new JTextField(20);
+        JLabel descriptionLabel = new JLabel("Description:");
+        descriptionField = new JTextField(20);
+        JButton addButton = new JButton("Add");
+        addButton.addActionListener(new AddButtonListener());
+
+        inputPanel.add(itemLabel);
+        inputPanel.add(itemField);
+        inputPanel.add(descriptionLabel);
+        inputPanel.add(descriptionField);
+        inputPanel.add(addButton);
+
+        descriptionArea = new JTextArea();
+        descriptionArea.setEditable(false);
+
+        JScrollPane scrollPane = new JScrollPane(descriptionArea);
+
+        JButton removeButton = new JButton("Remove");
+        removeButton.addActionListener(new RemoveButtonListener());
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(removeButton);
+
+        itemPanel = new JPanel();
+        itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.Y_AXIS));
+
+        add(inputPanel, BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.CENTER);
+        add(buttonPanel, BorderLayout.SOUTH);
+        add(itemPanel, BorderLayout.WEST);
+    }
+
+    private class AddButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String item = itemField.getText();
+            String description = descriptionField.getText();
+            Item newItem = new Item(item, description);
+            itemList.add(newItem);
+            itemDescriptions.put(item, description);
+            descriptionArea.append("Item: " + item + " - Description: " + description + "\n");
+
+            JCheckBox checkBox = new JCheckBox(item);
+            checkBox.setSelected(true);
+            itemPanel.add(checkBox);
+
+            itemField.setText("");
+            descriptionField.setText("");
+            revalidate();
+            repaint();
+        }
+    }
+
+    private class RemoveButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            for (int i = itemPanel.getComponentCount() - 1; i >= 0; i--) {
+                Component component = itemPanel.getComponent(i);
+                if (component instanceof JCheckBox) {
+                    JCheckBox checkBox = (JCheckBox) component;
+                    if (checkBox.isSelected()) {
+                        String itemName = checkBox.getText();
+                        removeItem(itemName);
+                        itemPanel.remove(checkBox);
+                    }
+                }
+            }
+
+            revalidate();
+            repaint();
+        }
+    }
+
+    private void removeItem(String itemName) {
+        itemList.removeIf(item -> item.getName().equals(itemName));
+        itemDescriptions.remove(itemName);
+        descriptionArea.setText(getItemListAsString());
+    }
+
+    private String getItemListAsString() {
+        StringBuilder builder = new StringBuilder();
+        for (Item item : itemList) {
+            builder.append("Item: ").append(item.getName()).append(" - Description: ").append(item.getDescription()).append("\n");
+        }
+        return builder.toString();
+    }
+
+    private static class Item {
+        private String name;
+        private String description;
+
+        public Item(String name, String description) {
+            this.name = name;
+            this.description = description;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+           return description;
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            ArrayListGUI gui = new ArrayListGUI();
+            gui.setVisible(true);
+        });
+    }
+}
